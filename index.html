@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Chegada de CPUs</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>CONTROLE DE CHEGADA DE CPUs</h1>
+
+    <section class="card cadastro">
+      <h2>Cadastro</h2>
+      <div class="form-grid">
+        <label>Nº CPU
+          <input id="cpu" type="text">
+        </label>
+        <label>Cliente
+          <input id="cliente" type="text">
+        </label>
+        <label>Data
+          <input id="data" type="text">
+        </label>
+      </div>
+
+      <label>Problema / Anotação
+        <textarea id="problema" rows="4"></textarea>
+      </label>
+
+      <div class="buttons">
+        <button id="btnSalvar" class="success" onclick="salvar()">SALVAR</button>
+        <button class="primary" onclick="limpar()">LIMPAR</button>
+        <button id="btnCancelar" class="cancel" onclick="cancelarEdicao()" disabled>CANCELAR EDIÇÃO</button>
+      </div>
+    </section>
+
+    <section class="busca">
+      <label>Buscar:
+        <input id="busca" type="search" placeholder="CPU, cliente, data ou problema..." oninput="filtrar()">
+      </label>
+      <button class="primary" onclick="carregarDados()">ATUALIZAR</button>
+      <button class="purple" onclick="imprimirTudo()">IMPRIMIR TUDO</button>
+    </section>
+
+    <section id="status"></section>
+    <section id="blocos" class="blocos"></section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
