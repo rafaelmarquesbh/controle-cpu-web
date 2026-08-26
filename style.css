@@ -1,4 +1,6 @@
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -45,7 +47,8 @@ label {
   margin-bottom: 12px;
 }
 
-input, textarea {
+input,
+textarea {
   width: 100%;
   margin-top: 6px;
   padding: 9px 10px;
@@ -56,9 +59,12 @@ input, textarea {
   font: inherit;
 }
 
-textarea { resize: vertical; }
+textarea {
+  resize: vertical;
+}
 
-.buttons, .busca {
+.buttons,
+.busca {
   display: flex;
   align-items: end;
   gap: 8px;
@@ -82,7 +88,11 @@ button:disabled {
 .success { background: #107c10; color: #fff; }
 .danger { background: #c42b1c; color: #fff; }
 .purple { background: #5b2c83; color: #fff; }
-.cancel { background: #e0e0e0; color: #000; border: 1px solid #aaa; }
+.cancel {
+  background: #e0e0e0;
+  color: #000;
+  border: 1px solid #aaa;
+}
 
 .busca {
   margin-bottom: 15px;
@@ -141,7 +151,9 @@ button:disabled {
   margin-top: 12px;
 }
 
-.acoes button { padding: 7px 11px; }
+.acoes button {
+  padding: 7px 11px;
+}
 
 .vazio {
   grid-column: 1 / -1;
@@ -151,20 +163,52 @@ button:disabled {
 }
 
 @media (max-width: 850px) {
-  .blocos { grid-template-columns: repeat(2, 1fr); }
-  .form-grid { grid-template-columns: 1fr 1fr; }
+  .blocos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 600px) {
-  .blocos, .form-grid { grid-template-columns: 1fr; }
-  .container { padding: 10px; }
-  h1 { font-size: 21px; }
+  .blocos,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 21px;
+  }
 }
 
 @media print {
-  .cadastro, .busca, #status, .acoes { display: none !important; }
-  body { background: #fff; }
-  .container { max-width: none; }
-  .blocos { grid-template-columns: 1fr; }
-  .bloco { break-inside: avoid; box-shadow: none; }
+  .cadastro,
+  .busca,
+  #status,
+  .acoes {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .container {
+    max-width: none;
+  }
+
+  .blocos {
+    grid-template-columns: 1fr;
+  }
+
+  .bloco {
+    break-inside: avoid;
+    box-shadow: none;
+  }
 }
