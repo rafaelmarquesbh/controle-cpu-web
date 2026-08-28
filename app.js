@@ -1,564 +1,935 @@
-const SUPABASE_URL = "https://oipbdwctkkhsibqtitmy.supabase.co";
-const SUPABASE_KEY = "sb_publishable_NB8Zj3BupM5huL9uiS1LkQ_8sYLB_yp";
-const TABLE_NAME = "chegadas_cpu";
+// ==========================================
+// LISTA DE COMPRAS
+// SUPABASE
+// ==========================================
 
-const HEADERS = {
-  "apikey": SUPABASE_KEY,
-  "Authorization": `Bearer ${SUPABASE_KEY}`,
-  "Content-Type": "application/json",
-  "Prefer": "return=representation"
-};
+const SUPABASE_URL =
+    "https://oipbdwctkkhsibqtitmy.supabase.co";
 
-let dadosCache = [];
-let idEditando = null;
+const SUPABASE_ANON_KEY =
+    "sb_publishable_NB8Zj3BupM5huL9uiS1LkQ_8sYLB_yp";
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("data").value = dataAtual();
-  carregarDados();
-});
 
-function dataAtual() {
-  const agora = new Date();
+// ==========================================
+// CONEXÃO COM SUPABASE
+// ==========================================
 
-  return String(agora.getDate()).padStart(2, "0") + "/" +
-         String(agora.getMonth() + 1).padStart(2, "0") + "/" +
-         agora.getFullYear();
-}
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
 
-function mostrarStatus(texto, erro = false) {
-  const el = document.getElementById("status");
-  el.textContent = texto;
-  el.style.color = erro ? "#c42b1c" : "#107c10";
-}
 
-async function carregarDados() {
-  try {
-    mostrarStatus("Carregando...");
+// ==========================================
+// ELEMENTOS DA TELA
+// ==========================================
 
-    const resposta = await fetch(
-      `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?select=*&order=id.desc`,
-      {
-        method: "GET",
-        headers: HEADERS
-      }
+const produtoInput =
+    document.getElementById("produto");
+
+const quantidadeInput =
+    document.getElementById("quantidade");
+
+const unidadeInput =
+    document.getElementById("unidade");
+
+const precoInput =
+    document.getElementById("preco");
+
+const btnAdicionar =
+    document.getElementById("btnAdicionar");
+
+const listaProdutos =
+    document.getElementById("listaProdutos");
+
+const listaComprados =
+    document.getElementById("listaComprados");
+
+const contador =
+    document.getElementById("contador");
+
+const contadorComprados =
+    document.getElementById("contadorComprados");
+
+const total =
+    document.getElementById("total");
+
+const totalComprados =
+    document.getElementById("totalComprados");
+
+const totalItens =
+    document.getElementById("totalItens");
+
+
+// ==========================================
+// VARIÁVEIS
+// ==========================================
+
+let produtos = [];
+
+let editandoId = null;
+
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    carregarProdutos
+);
+
+
+// ==========================================
+// FORMATAÇÃO DE MOEDA
+// ==========================================
+
+function formatarMoeda(valor) {
+
+    return Number(valor || 0).toLocaleString(
+        "pt-BR",
+        {
+            style: "currency",
+            currency: "BRL"
+        }
     );
 
-    if (!resposta.ok) {
-      throw new Error(
-        `Erro ${resposta.status}: ${await resposta.text()}`
-      );
+}
+
+
+// ==========================================
+// ESCAPAR HTML
+// ==========================================
+
+function escaparHTML(texto) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        texto ?? "";
+
+    return div.innerHTML;
+
+}
+
+
+// ==========================================
+// CARREGAR PRODUTOS DO SUPABASE
+// ==========================================
+
+async function carregarProdutos() {
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("lista_compras")
+            .select("*")
+            .order("id", {
+                ascending: true
+            });
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao carregar produtos:",
+                error
+            );
+
+            alert(
+                "Não foi possível carregar os produtos do banco de dados."
+            );
+
+            return;
+
+        }
+
+
+        produtos = data || [];
+
+        renderizar();
+
     }
 
-    dadosCache = await resposta.json();
-    filtrar();
+    catch (erro) {
 
-    mostrarStatus(`${dadosCache.length} registro(s) carregado(s).`);
-  } catch (erro) {
-    mostrarStatus("Erro ao carregar: " + erro.message, true);
-  }
-}
+        console.error(erro);
 
-async function salvarNoSupabase(dados) {
-  const resposta = await fetch(
-    `${SUPABASE_URL}/rest/v1/${TABLE_NAME}`,
-    {
-      method: "POST",
-      headers: HEADERS,
-      body: JSON.stringify(dados)
-    }
-  );
+        alert(
+            "Erro de conexão com o banco de dados."
+        );
 
-  if (!resposta.ok) {
-    throw new Error(
-      `Erro ${resposta.status}: ${await resposta.text()}`
-    );
-  }
-}
-
-async function atualizarNoSupabase(id, dados) {
-  const resposta = await fetch(
-    `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?id=eq.${encodeURIComponent(id)}`,
-    {
-      method: "PATCH",
-      headers: HEADERS,
-      body: JSON.stringify(dados)
-    }
-  );
-
-  if (!resposta.ok) {
-    throw new Error(
-      `Erro ${resposta.status}: ${await resposta.text()}`
-    );
-  }
-}
-
-async function excluirNoSupabase(id) {
-  const resposta = await fetch(
-    `${SUPABASE_URL}/rest/v1/${TABLE_NAME}?id=eq.${encodeURIComponent(id)}`,
-    {
-      method: "DELETE",
-      headers: HEADERS
-    }
-  );
-
-  if (!resposta.ok) {
-    throw new Error(
-      `Erro ${resposta.status}: ${await resposta.text()}`
-    );
-  }
-}
-
-async function salvar() {
-  const numero_cpu =
-    document.getElementById("cpu").value.trim();
-
-  const cliente =
-    document.getElementById("cliente").value.trim();
-
-  const data_chegada =
-    document.getElementById("data").value.trim();
-
-  // Mantemos o nome da coluna "problema" no Supabase.
-  // Apenas o texto exibido ao usuário foi alterado.
-  const problema =
-    document.getElementById("problema").value.trim();
-
-  if (!numero_cpu) {
-    alert("Informe o número da CPU.");
-    document.getElementById("cpu").focus();
-    return;
-  }
-
-  if (!cliente) {
-    alert("Informe o cliente.");
-    document.getElementById("cliente").focus();
-    return;
-  }
-
-  if (!problema) {
-    alert("Informe o relato ou anotação.");
-    document.getElementById("problema").focus();
-    return;
-  }
-
-  const dados = {
-    numero_cpu,
-    cliente,
-    data_chegada,
-    problema,
-    data_hora_registro: new Date().toISOString()
-  };
-
-  try {
-    document.getElementById("btnSalvar").disabled = true;
-
-    if (idEditando !== null) {
-      await atualizarNoSupabase(idEditando, dados);
-
-      alert("Registro atualizado com sucesso!");
-      cancelarEdicao();
-    } else {
-      await salvarNoSupabase(dados);
-
-      alert("CPU cadastrada com sucesso!");
-      limpar();
     }
 
-    await carregarDados();
-  } catch (erro) {
-    alert("Não foi possível salvar:\n\n" + erro.message);
-  } finally {
-    document.getElementById("btnSalvar").disabled = false;
-  }
 }
 
-function limpar() {
-  document.getElementById("cpu").value = "";
-  document.getElementById("cliente").value = "";
-  document.getElementById("data").value = dataAtual();
-  document.getElementById("problema").value = "";
 
-  document.getElementById("cpu").focus();
+// ==========================================
+// ADICIONAR PRODUTO
+// ==========================================
+
+btnAdicionar.addEventListener(
+    "click",
+    adicionarProduto
+);
+
+
+async function adicionarProduto() {
+
+    const produto =
+        produtoInput.value.trim();
+
+    const quantidade =
+        Number(quantidadeInput.value);
+
+    const unidade =
+        unidadeInput.value.trim();
+
+    const preco =
+        Number(precoInput.value);
+
+
+    // ======================================
+    // VALIDAÇÕES
+    // ======================================
+
+    if (!produto) {
+
+        alert(
+            "Digite o nome do produto."
+        );
+
+        produtoInput.focus();
+
+        return;
+
+    }
+
+
+    if (!quantidade || quantidade <= 0) {
+
+        alert(
+            "Informe uma quantidade válida."
+        );
+
+        quantidadeInput.focus();
+
+        return;
+
+    }
+
+
+    if (!unidade) {
+
+        alert(
+            "Informe a unidade."
+        );
+
+        unidadeInput.focus();
+
+        return;
+
+    }
+
+
+    if (isNaN(preco) || preco < 0) {
+
+        alert(
+            "Informe um preço válido."
+        );
+
+        precoInput.focus();
+
+        return;
+
+    }
+
+
+    // ======================================
+    // EDITAR
+    // ======================================
+
+    if (editandoId !== null) {
+
+        await atualizarProduto(
+            produto,
+            quantidade,
+            unidade,
+            preco
+        );
+
+        return;
+
+    }
+
+
+    // ======================================
+    // NOVO PRODUTO
+    // ======================================
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("lista_compras")
+            .insert([
+                {
+                    produto: produto,
+                    quantidade: quantidade,
+                    unidade: unidade,
+                    preco: preco,
+                    comprado: false
+                }
+            ])
+            .select()
+            .single();
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao adicionar:",
+                error
+            );
+
+            alert(
+                "Erro ao salvar no banco de dados:\n\n" +
+                error.message
+            );
+
+            return;
+
+        }
+
+
+        produtos.push(data);
+
+        limparFormulario();
+
+        renderizar();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro de conexão com o banco de dados."
+        );
+
+    }
+
 }
 
-function cancelarEdicao() {
-  idEditando = null;
 
-  document.getElementById("btnSalvar").textContent = "SALVAR";
-  document.getElementById("btnCancelar").disabled = true;
+// ==========================================
+// ATUALIZAR PRODUTO
+// ==========================================
 
-  limpar();
+async function atualizarProduto(
+    produto,
+    quantidade,
+    unidade,
+    preco
+) {
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("lista_compras")
+            .update({
+                produto: produto,
+                quantidade: quantidade,
+                unidade: unidade,
+                preco: preco
+            })
+            .eq("id", editandoId)
+            .select()
+            .single();
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao atualizar:",
+                error
+            );
+
+            alert(
+                "Erro ao atualizar no banco de dados:\n\n" +
+                error.message
+            );
+
+            return;
+
+        }
+
+
+        const indice =
+            produtos.findIndex(
+                item => item.id === editandoId
+            );
+
+
+        if (indice !== -1) {
+
+            produtos[indice] = data;
+
+        }
+
+
+        editandoId = null;
+
+        btnAdicionar.textContent =
+            "+ Adicionar produto";
+
+        limparFormulario();
+
+        renderizar();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro de conexão com o banco de dados."
+        );
+
+    }
+
 }
 
-function filtrar() {
-  const termo =
-    document.getElementById("busca").value.toLowerCase().trim();
 
-  if (!termo) {
-    renderizarBlocos(dadosCache);
-    return;
-  }
+// ==========================================
+// LIMPAR FORMULÁRIO
+// ==========================================
 
-  const filtrados = dadosCache.filter(item => {
-    const texto = [
-      item.id,
-      item.numero_cpu,
-      item.cliente,
-      item.data_chegada,
-      item.problema
-    ].join(" ").toLowerCase();
+function limparFormulario() {
 
-    return texto.includes(termo);
-  });
+    produtoInput.value = "";
 
-  renderizarBlocos(filtrados);
+    quantidadeInput.value = "";
+
+    unidadeInput.value = "";
+
+    precoInput.value = "";
+
+    produtoInput.focus();
+
 }
 
-function renderizarBlocos(dados) {
-  const container = document.getElementById("blocos");
 
-  container.innerHTML = "";
+// ==========================================
+// RENDERIZAR
+// ==========================================
 
-  if (!dados.length) {
-    container.innerHTML =
-      `<div class="vazio">Nenhum registro encontrado.</div>`;
-    return;
-  }
+function renderizar() {
 
-  dados.forEach(item => {
-    const bloco = document.createElement("article");
+    const pendentes =
+        produtos.filter(
+            item => !item.comprado
+        );
 
-    bloco.className = "bloco";
 
-    bloco.innerHTML = `
-      <div class="id">
-        ID: ${esc(item.id)}
-      </div>
+    const comprados =
+        produtos.filter(
+            item => item.comprado
+        );
 
-      <div class="cpu-titulo">
-        CPU: ${esc(item.numero_cpu)}
-      </div>
 
-      <strong>
-        Cliente: ${esc(item.cliente)}
-      </strong>
+    // ======================================
+    // PENDENTES
+    // ======================================
 
-      <div>
-        Data: ${esc(item.data_chegada)}
-      </div>
+    if (pendentes.length === 0) {
 
-      <div class="problema">
-        <strong>Relato / Anotação:</strong><br>
-        ${esc(item.problema)}
-      </div>
+        listaProdutos.innerHTML = `
 
-      <div class="acoes">
-        <button
-          class="primary"
-          onclick="editar(${Number(item.id)})">
-          Editar
-        </button>
+            <div class="vazio">
 
-        <button
-          class="purple"
-          onclick="imprimirUm(${Number(item.id)})">
-          Imprimir
-        </button>
+                <div class="vazio-icone">
+                    🛒
+                </div>
 
-        <button
-          class="danger"
-          onclick="excluir(${Number(item.id)})">
-          Excluir
-        </button>
-      </div>
+                <p>
+                    Nenhum produto adicionado.
+                </p>
+
+                <span>
+                    Adicione seu primeiro produto acima.
+                </span>
+
+            </div>
+
+        `;
+
+    }
+
+    else {
+
+        listaProdutos.innerHTML =
+            pendentes
+                .map(criarProdutoHTML)
+                .join("");
+
+    }
+
+
+    // ======================================
+    // COMPRADOS
+    // ======================================
+
+    if (comprados.length === 0) {
+
+        listaComprados.innerHTML = `
+
+            <div class="vazio">
+
+                <div class="vazio-icone">
+                    ✅
+                </div>
+
+                <p>
+                    Nenhum produto comprado.
+                </p>
+
+            </div>
+
+        `;
+
+    }
+
+    else {
+
+        listaComprados.innerHTML =
+            comprados
+                .map(criarProdutoHTML)
+                .join("");
+
+    }
+
+
+    // ======================================
+    // CONTADORES
+    // ======================================
+
+    contador.textContent =
+        `${pendentes.length} ${
+            pendentes.length === 1
+                ? "item"
+                : "itens"
+        }`;
+
+
+    contadorComprados.textContent =
+        `${comprados.length} ${
+            comprados.length === 1
+                ? "item"
+                : "itens"
+        }`;
+
+
+    totalItens.textContent =
+        pendentes.length;
+
+
+    // ======================================
+    // TOTAL PENDENTE
+    // ======================================
+
+    const totalPendente =
+        pendentes.reduce(
+            (soma, item) => {
+
+                return soma +
+                    (
+                        Number(item.quantidade) *
+                        Number(item.preco)
+                    );
+
+            },
+            0
+        );
+
+
+    total.textContent =
+        formatarMoeda(totalPendente);
+
+
+    // ======================================
+    // TOTAL COMPRADO
+    // ======================================
+
+    const totalCompra =
+        comprados.reduce(
+            (soma, item) => {
+
+                return soma +
+                    (
+                        Number(item.quantidade) *
+                        Number(item.preco)
+                    );
+
+            },
+            0
+        );
+
+
+    totalComprados.textContent =
+        formatarMoeda(totalCompra);
+
+}
+
+
+// ==========================================
+// CRIAR HTML DO PRODUTO
+// ==========================================
+
+function criarProdutoHTML(item) {
+
+    const precoTotal =
+        Number(item.quantidade) *
+        Number(item.preco);
+
+
+    return `
+
+        <div class="produto">
+
+            <input
+                type="checkbox"
+                class="checkbox"
+                ${item.comprado ? "checked" : ""}
+                onchange="alternarComprado(${item.id})"
+            >
+
+
+            <div class="produto-info">
+
+                <div class="produto-nome">
+
+                    ${escaparHTML(item.produto)}
+
+                </div>
+
+
+                <div class="produto-detalhes">
+
+                    ${item.quantidade}
+
+                    ${escaparHTML(item.unidade)}
+
+                    •
+
+                    ${formatarMoeda(item.preco)}
+                    / unidade
+
+                </div>
+
+            </div>
+
+
+            <div class="produto-preco">
+
+                ${formatarMoeda(precoTotal)}
+
+            </div>
+
+
+            <div class="acoes">
+
+                <button
+                    class="btn-editar"
+                    onclick="editarProduto(${item.id})"
+                    title="Editar"
+                >
+                    ✏️
+                </button>
+
+
+                <button
+                    class="btn-excluir"
+                    onclick="excluirProduto(${item.id})"
+                    title="Excluir"
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+
     `;
 
-    container.appendChild(bloco);
-  });
 }
 
-function esc(valor) {
-  return String(valor ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+
+// ==========================================
+// MARCAR COMO COMPRADO
+// ==========================================
+
+async function alternarComprado(id) {
+
+    const item =
+        produtos.find(
+            produto => produto.id === id
+        );
+
+
+    if (!item) {
+
+        return;
+
+    }
+
+
+    const novoStatus =
+        !item.comprado;
+
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("lista_compras")
+            .update({
+                comprado: novoStatus
+            })
+            .eq("id", id)
+            .select()
+            .single();
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao marcar comprado:",
+                error
+            );
+
+            alert(
+                "Erro ao atualizar o produto:\n\n" +
+                error.message
+            );
+
+            renderizar();
+
+            return;
+
+        }
+
+
+        const indice =
+            produtos.findIndex(
+                produto => produto.id === id
+            );
+
+
+        if (indice !== -1) {
+
+            produtos[indice] = data;
+
+        }
+
+
+        renderizar();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro de conexão com o banco de dados."
+        );
+
+    }
+
 }
 
-function editar(id) {
-  const item = dadosCache.find(
-    registro => Number(registro.id) === Number(id)
-  );
 
-  if (!item) return;
+// ==========================================
+// EDITAR PRODUTO
+// ==========================================
 
-  idEditando = item.id;
+function editarProduto(id) {
 
-  document.getElementById("cpu").value =
-    item.numero_cpu ?? "";
+    const item =
+        produtos.find(
+            produto => produto.id === id
+        );
 
-  document.getElementById("cliente").value =
-    item.cliente ?? "";
 
-  document.getElementById("data").value =
-    item.data_chegada ?? "";
+    if (!item) {
 
-  document.getElementById("problema").value =
-    item.problema ?? "";
+        return;
 
-  document.getElementById("btnSalvar").textContent =
-    "ATUALIZAR";
+    }
 
-  document.getElementById("btnCancelar").disabled = false;
 
-  document.getElementById("cpu").focus();
+    produtoInput.value =
+        item.produto;
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+    quantidadeInput.value =
+        item.quantidade;
+
+    unidadeInput.value =
+        item.unidade;
+
+    precoInput.value =
+        item.preco;
+
+
+    editandoId = id;
+
+
+    btnAdicionar.textContent =
+        "💾 Salvar alteração";
+
+
+    produtoInput.focus();
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
 }
 
-async function excluir(id) {
-  const item = dadosCache.find(
-    registro => Number(registro.id) === Number(id)
-  );
 
-  if (!item) return;
+// ==========================================
+// EXCLUIR PRODUTO
+// ==========================================
 
-  if (!confirm(
-    `Tem certeza que deseja excluir a CPU ${item.numero_cpu}?`
-  )) {
-    return;
-  }
+async function excluirProduto(id) {
 
-  try {
-    await excluirNoSupabase(id);
+    const item =
+        produtos.find(
+            produto => produto.id === id
+        );
 
-    alert("Registro excluído com sucesso!");
 
-    await carregarDados();
-  } catch (erro) {
-    alert(
-      "Não foi possível excluir:\n\n" +
-      erro.message
+    if (!item) {
+
+        return;
+
+    }
+
+
+    const confirmar =
+        confirm(
+            `Deseja excluir "${item.produto}"?`
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const {
+            error
+        } = await supabaseClient
+            .from("lista_compras")
+            .delete()
+            .eq("id", id);
+
+
+        if (error) {
+
+            console.error(
+                "Erro ao excluir:",
+                error
+            );
+
+            alert(
+                "Erro ao excluir do banco de dados:\n\n" +
+                error.message
+            );
+
+            return;
+
+        }
+
+
+        produtos =
+            produtos.filter(
+                produto => produto.id !== id
+            );
+
+
+        if (editandoId === id) {
+
+            editandoId = null;
+
+            btnAdicionar.textContent =
+                "+ Adicionar produto";
+
+            limparFormulario();
+
+        }
+
+
+        renderizar();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro de conexão com o banco de dados."
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// ENTER PARA ADICIONAR
+// ==========================================
+
+[
+    produtoInput,
+    quantidadeInput,
+    unidadeInput,
+    precoInput
+]
+.forEach(input => {
+
+    input.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Enter") {
+
+                adicionarProduto();
+
+            }
+
+        }
     );
-  }
-}
 
-function imprimirUm(id) {
-  const item = dadosCache.find(
-    registro => Number(registro.id) === Number(id)
-  );
-
-  if (!item) return;
-
-  const janela = window.open("", "_blank");
-
-  janela.document.write(`
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-
-      <title>
-        Imprimir CPU ${esc(item.numero_cpu)}
-      </title>
-
-      <style>
-        @page {
-          size: A4;
-          margin: 15mm;
-        }
-
-        body {
-          font-family: Arial;
-          font-size: 12pt;
-          color: #111;
-        }
-
-        h1 {
-          text-align: center;
-        }
-
-        .cabecalho {
-          text-align: center;
-          border-bottom: 2px solid #000;
-          padding-bottom: 10px;
-        }
-
-        .campo {
-          margin: 12px 0;
-        }
-
-        .rotulo {
-          font-weight: bold;
-        }
-
-        .relato {
-          border: 1px solid #999;
-          padding: 12px;
-          min-height: 100px;
-          white-space: pre-wrap;
-        }
-
-        .assinatura {
-          margin-top: 70px;
-          text-align: center;
-        }
-
-        .linha {
-          border-top: 1px solid #000;
-          width: 70%;
-          margin: auto;
-        }
-      </style>
-    </head>
-
-    <body>
-      <div class="cabecalho">
-        <h1>
-          CONTROLE DE CHAMADOS SUPORTE GEODIGITUS
-        </h1>
-
-        <p>Controle de chamados</p>
-      </div>
-
-      <div class="campo">
-        <span class="rotulo">Nº CPU:</span>
-        ${esc(item.numero_cpu)}
-      </div>
-
-      <div class="campo">
-        <span class="rotulo">Cliente:</span>
-        ${esc(item.cliente)}
-      </div>
-
-      <div class="campo">
-        <span class="rotulo">Data:</span>
-        ${esc(item.data_chegada)}
-      </div>
-
-      <div class="campo">
-        <span class="rotulo">
-          Relato / Anotação:
-        </span>
-
-        <div class="relato">
-          ${esc(item.problema)}
-        </div>
-      </div>
-
-      <div class="assinatura">
-        <div class="linha"></div>
-        Assinatura
-      </div>
-    </body>
-    </html>
-  `);
-
-  janela.document.close();
-  janela.focus();
-  janela.print();
-}
-
-function imprimirTudo() {
-  if (!dadosCache.length) {
-    alert("Não há registros para imprimir.");
-    return;
-  }
-
-  const linhas = dadosCache.map(item => `
-    <tr>
-      <td>${esc(item.id)}</td>
-      <td>${esc(item.numero_cpu)}</td>
-      <td>${esc(item.cliente)}</td>
-      <td>${esc(item.data_chegada)}</td>
-      <td>${esc(item.problema)}</td>
-    </tr>
-  `).join("");
-
-  const janela = window.open("", "_blank");
-
-  janela.document.write(`
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-
-      <title>
-        Controle de Chamados Suporte Geodigitus
-      </title>
-
-      <style>
-        @page {
-          size: A4 landscape;
-          margin: 10mm;
-        }
-
-        body {
-          font-family: Arial;
-          color: #111;
-        }
-
-        h1 {
-          text-align: center;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        th,
-        td {
-          border: 1px solid #666;
-          padding: 7px;
-          text-align: left;
-        }
-
-        th {
-          background: #eee;
-        }
-      </style>
-    </head>
-
-    <body>
-      <h1>
-        CONTROLE DE CHAMADOS SUPORTE GEODIGITUS
-      </h1>
-
-      <p>
-        <strong>Total de registros:</strong>
-        ${dadosCache.length}
-      </p>
-
-      <p>
-        <strong>Data da impressão:</strong>
-        ${new Date().toLocaleString("pt-BR")}
-      </p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nº CPU</th>
-            <th>Cliente</th>
-            <th>Data</th>
-            <th>Relato / Anotação</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${linhas}
-        </tbody>
-      </table>
-    </body>
-    </html>
-  `);
-
-  janela.document.close();
-  janela.focus();
-  janela.print();
-}
+});
