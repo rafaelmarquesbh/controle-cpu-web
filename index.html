@@ -1,62 +1,305 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0078d7">
-  <title>Controle de Chamados Suporte Geodigitus</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#2563eb"
+    >
+
+    <title>Lista de Compras</title>
+
+    <!-- FAVICON -->
+    <link
+        rel="icon"
+        type="image/svg+xml"
+        href="favicon.svg"
+    >
+
+    <!-- CSS -->
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
+
 <body>
-  <main class="container">
-    <h1>CONTROLE DE CHAMADOS SUPORTE GEODIGITUS</h1>
 
-    <section class="card cadastro">
-      <h2>Cadastro</h2>
+    <div class="container">
 
-      <div class="form-grid">
-        <label>Nº CPU
-          <input id="cpu" type="text">
-        </label>
+        <!-- CABEÇALHO -->
+        <header class="cabecalho">
 
-        <label>Cliente
-          <input id="cliente" type="text">
-        </label>
+            <div class="icone-titulo">
+                🛒
+            </div>
 
-        <label>Data
-          <input id="data" type="text">
-        </label>
-      </div>
+            <div>
+                <h1>Lista de Compras</h1>
 
-      <label>Relato / Anotação
-        <textarea id="problema" rows="4"></textarea>
-      </label>
+                <p>
+                    Organize suas compras de forma simples
+                </p>
+            </div>
 
-      <div class="buttons">
-        <button id="btnSalvar" class="success" onclick="salvar()">SALVAR</button>
-        <button class="primary" onclick="limpar()">LIMPAR</button>
-        <button id="btnCancelar" class="cancel" onclick="cancelarEdicao()" disabled>
-          CANCELAR EDIÇÃO
-        </button>
-      </div>
-    </section>
+        </header>
 
-    <section class="busca">
-      <label>Buscar:
-        <input id="busca" type="search"
-               placeholder="CPU, cliente, data ou relato..."
-               oninput="filtrar()">
-      </label>
 
-      <button class="primary" onclick="carregarDados()">ATUALIZAR</button>
-      <button class="purple" onclick="imprimirTudo()">IMPRIMIR TUDO</button>
-    </section>
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main>
 
-    <section id="status"></section>
-    <section id="blocos" class="blocos"></section>
-  </main>
+            <!-- FORMULÁRIO -->
+            <section class="formulario">
 
-  <script src="app.js"></script>
+                <h2>Adicionar produto</h2>
+
+                <div class="campo">
+
+                    <label for="produto">
+                        Produto
+                    </label>
+
+                    <input
+                        type="text"
+                        id="produto"
+                        placeholder="Ex.: Arroz"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="linha">
+
+                    <div class="campo">
+
+                        <label for="quantidade">
+                            Quantidade
+                        </label>
+
+                        <input
+                            type="number"
+                            id="quantidade"
+                            placeholder="Ex.: 2"
+                            min="0"
+                            step="0.01"
+                        >
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label for="unidade">
+                            Unidade
+                        </label>
+
+                        <input
+                            type="text"
+                            id="unidade"
+                            placeholder="kg, un, L..."
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="campo">
+
+                    <label for="preco">
+                        Preço
+                    </label>
+
+                    <input
+                        type="number"
+                        id="preco"
+                        placeholder="R$ 0,00"
+                        min="0"
+                        step="0.01"
+                    >
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="btnAdicionar"
+                >
+                    + Adicionar produto
+                </button>
+
+            </section>
+
+
+            <!-- LISTA DE COMPRAS -->
+            <section class="lista">
+
+                <div class="titulo-lista">
+
+                    <div>
+
+                        <h2>
+                            🛍️ Lista de compras
+                        </h2>
+
+                        <p>
+                            Produtos que ainda faltam
+                        </p>
+
+                    </div>
+
+                    <span id="contador">
+                        0 itens
+                    </span>
+
+                </div>
+
+
+                <div id="listaProdutos">
+
+                    <div class="vazio">
+
+                        <div class="vazio-icone">
+                            🛒
+                        </div>
+
+                        <p>
+                            Nenhum produto adicionado.
+                        </p>
+
+                        <span>
+                            Adicione seu primeiro produto acima.
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- RESUMO -->
+            <section class="resumo">
+
+                <div class="resumo-item">
+
+                    <span>
+                        Itens pendentes
+                    </span>
+
+                    <strong id="totalItens">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="resumo-item">
+
+                    <span>
+                        Total estimado
+                    </span>
+
+                    <strong id="total">
+                        R$ 0,00
+                    </strong>
+
+                </div>
+
+            </section>
+
+
+            <!-- PRODUTOS COMPRADOS -->
+            <section class="comprados">
+
+                <div class="titulo-lista">
+
+                    <div>
+
+                        <h2>
+                            ✅ Comprados
+                        </h2>
+
+                        <p>
+                            Produtos que já estão no carrinho
+                        </p>
+
+                    </div>
+
+                    <span id="contadorComprados">
+                        0 itens
+                    </span>
+
+                </div>
+
+
+                <div id="listaComprados">
+
+                    <div class="vazio">
+
+                        <div class="vazio-icone">
+                            ✅
+                        </div>
+
+                        <p>
+                            Nenhum produto comprado.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- TOTAL DA COMPRA -->
+            <section class="total-compras">
+
+                <div>
+
+                    <span>
+                        Total da compra
+                    </span>
+
+                    <strong id="totalComprados">
+                        R$ 0,00
+                    </strong>
+
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- RODAPÉ -->
+        <footer>
+
+            <p>
+                Lista de Compras
+            </p>
+
+        </footer>
+
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+    <script src="app.js"></script>
+
 </body>
+
 </html>
