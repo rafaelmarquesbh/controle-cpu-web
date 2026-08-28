@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0078d7">
+  <meta name="theme-color" content="#0f172a">
   <title>Controle de Chamados Suporte Geodigitus</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <main class="container">
@@ -17,20 +20,20 @@
 
       <div class="form-grid">
         <label>Nº CPU
-          <input id="cpu" type="text">
+          <input id="cpu" type="text" placeholder="Ex: CPU-001234">
         </label>
 
         <label>Cliente
-          <input id="cliente" type="text">
+          <input id="cliente" type="text" placeholder="Nome do cliente">
         </label>
 
         <label>Data
-          <input id="data" type="text">
+          <input id="data" type="text" placeholder="DD/MM/AAAA">
         </label>
       </div>
 
       <label>Relato / Anotação
-        <textarea id="problema" rows="4"></textarea>
+        <textarea id="problema" rows="4" placeholder="Descreva o problema ou anotação..."></textarea>
       </label>
 
       <div class="buttons">
