@@ -1,38 +1,38 @@
 /* ===== Design System ===== */
 :root {
-  --bg-body: #f1f5f9;
+  --bg-body: #f4f6f8;
   --bg-card: #ffffff;
   --bg-input: #ffffff;
-  --bg-hover: #f8fafc;
-  --bg-danger-soft: #fef2f2;
-  --bg-success-soft: #f0fdf4;
-  --bg-primary-soft: #eff6ff;
-  --bg-purple-soft: #faf5ff;
+  --bg-hover: #f8f9fa;
+  --bg-danger-soft: #fdf0f0;
+  --bg-success-soft: #eef8ef;
+  --bg-primary-soft: #eaf2f8;
+  --bg-purple-soft: #f3f0f7;
 
-  --border-default: #e2e8f0;
-  --border-focus: #3b82f6;
-  --border-hover: #cbd5e1;
+  --border-default: #d9dee3;
+  --border-focus: #2f6f9f;
+  --border-hover: #c7cdd3;
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-danger: #dc2626;
-  --text-success: #16a34a;
-  --text-primary-color: #2563eb;
-  --text-purple: #7c3aed;
+  --text-primary: #1f2933;
+  --text-secondary: #52606d;
+  --text-muted: #7b8794;
+  --text-danger: #c62828;
+  --text-success: #2e7d32;
+  --text-primary-color: #2f6f9f;
+  --text-purple: #5e6472;
 
-  --btn-primary-bg: #2563eb;
-  --btn-primary-hover: #1d4ed8;
-  --btn-success-bg: #16a34a;
-  --btn-success-hover: #15803d;
-  --btn-danger-bg: #dc2626;
-  --btn-danger-hover: #b91c1c;
-  --btn-purple-bg: #7c3aed;
-  --btn-purple-hover: #6d28d9;
-  --btn-cancel-bg: #f1f5f9;
-  --btn-cancel-border: #cbd5e1;
-  --btn-cancel-text: #475569;
-  --btn-cancel-hover: #e2e8f0;
+  --btn-primary-bg: #2f6f9f;
+  --btn-primary-hover: #245a82;
+  --btn-success-bg: #2e7d32;
+  --btn-success-hover: #256628;
+  --btn-danger-bg: #c62828;
+  --btn-danger-hover: #a51f1f;
+  --btn-purple-bg: #5e6472;
+  --btn-purple-hover: #4f5561;
+  --btn-cancel-bg: #f4f6f8;
+  --btn-cancel-border: #c7cdd3;
+  --btn-cancel-text: #52606d;
+  --btn-cancel-hover: #d9dee3;
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
@@ -90,7 +90,7 @@ h1::after {
   transform: translateX(-50%);
   width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  background: #2f6f9f;
   border-radius: 2px;
 }
 
@@ -124,7 +124,7 @@ h1::after {
   content: '';
   width: 4px;
   height: 22px;
-  background: linear-gradient(180deg, #2563eb, #7c3aed);
+  background: #2f6f9f;
   border-radius: 2px;
 }
 
@@ -369,7 +369,7 @@ button:disabled::after {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  background: #2f6f9f;
   opacity: 0;
   transition: opacity var(--transition);
 }
@@ -527,8 +527,8 @@ button:disabled::after {
 /* ===== Scrollbar ===== */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #b8c0c8; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #7b8794; }
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
