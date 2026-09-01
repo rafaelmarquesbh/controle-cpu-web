@@ -236,7 +236,7 @@ function renderizarBlocos(dados) {
       </div>
 
       <div class="cpu-titulo">
-        CPU: ${esc(item.numero_cpu)}
+        Equipamento: ${esc(item.numero_cpu)}
       </div>
 
       <strong>
@@ -426,7 +426,7 @@ function imprimirUm(id) {
       </div>
 
       <div class="campo">
-        <span class="rotulo">Nº CPU:</span>
+        <span class="rotulo">Equipamento:</span>
         ${esc(item.numero_cpu)}
       </div>
 
@@ -543,7 +543,7 @@ function imprimirTudo() {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Nº CPU</th>
+            <th>Equipamento</th>
             <th>Cliente</th>
             <th>Data</th>
             <th>Relato / Anotação</th>
