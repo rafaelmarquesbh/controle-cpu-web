@@ -250,14 +250,14 @@ button{height:48px;border:0;border-radius:12px;padding:0 18px;font-size:15px;fon
           <h2>Exemplo baseado no procedimento</h2>
           <p>Trena: <strong>3,10 m</strong></p>
           <p>CPU: <strong>0,08 m</strong></p>
-          <p>Fator atual: <strong>5000</strong></p>
-          <p>X = (5000 × 3,10) ÷ 0,08</p>
-          <div class="answer">Novo fator = 193750</div>
+          <p>Fator atual: <strong>10000</strong> (5 dígitos)</p>
+          <p>X = (10000 × 3,10) ÷ 0,08</p>
+          <div class="answer">Novo fator = 387500</div>
         </div>
 
         <div class="note">
           <strong>Atenção:</strong> o exemplo resulta em 193.750, que possui 6 dígitos.
-          Se a sua CPU realmente aceitar no máximo 5 dígitos, esse resultado <strong>não pode ser digitado diretamente</strong>.
+          Embora o fator atual de 10000 tenha 5 dígitos, o resultado 387500 tem 6 dígitos e <strong>não pode ser digitado diretamente</strong> se o limite da CPU for de 5 dígitos.
           Nesse caso, o sistema deve ser investigado antes de aplicar o ajuste.
         </div>
       </main>
@@ -372,7 +372,7 @@ function calcular(){
   }
 
   const display=Math.round(novo);
-  document.getElementById('lcdFactor').textContent=(display>99999?'99999':String(display).padStart(5,'0'));
+  document.getElementById('lcdFactor').textContent=(display>99999?'99999':String(display));
 }
 
 function limpar(){
@@ -399,11 +399,8 @@ document.querySelectorAll('input').forEach(el=>{
   });
 });
 
-// Preenche o exemplo solicitado
-document.getElementById('real').value='3.10';
-document.getElementById('cpu').value='0.08';
-document.getElementById('fator').value='5000';
-calcular();
+// A calculadora abre limpa; o exemplo fica apenas como referência visual.
+limpar();
 </script>
 </body>
 </html>
