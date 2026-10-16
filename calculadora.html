@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Profundidade | Suporte Geodigitus</title>
+<style>
+:root{
+  --bg:#f4f6f8;
+  --card:#fff;
+  --text:#18212b;
+  --muted:#667085;
+  --line:#e4e8ed;
+  --primary:#1565c0;
+  --primary-soft:#edf4ff;
+  --success:#11743c;
+  --success-soft:#edf8f1;
+  --warning:#9a6700;
+  --warning-soft:#fff7df;
+  --danger:#b42318;
+  --danger-soft:#fff0ee;
+  --shadow:0 16px 42px rgba(16,24,40,.08);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:linear-gradient(180deg,#f8fafb 0,#f2f4f7 100%);
+}
+.container{width:min(1040px,calc(100% - 24px));margin:24px auto 40px}
+.card{
+  background:var(--card);
+  border:1px solid #e9edf1;
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  overflow:hidden
+}
+.header{padding:26px 28px 20px;border-bottom:1px solid var(--line)}
+.eyebrow{margin:0 0 6px;color:var(--primary);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+h1{margin:0;font-size:28px;line-height:1.2}
+.subtitle{margin:7px 0 0;color:var(--muted);font-size:15px}
+.layout{display:grid;grid-template-columns:1.25fr .9fr;gap:24px;padding:26px 28px 30px}
+.section-title{margin:0 0 15px;font-size:15px;font-weight:800}
+.fields{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.field.factor{grid-column:1/-1}
+label{display:block;margin-bottom:7px;font-size:13px;font-weight:800}
+.hint{margin:-2px 0 7px;color:var(--muted);font-size:11px}
+input{
+  width:100%;height:50px;padding:0 14px;border:1px solid #ccd3db;border-radius:12px;
+  font-size:17px;outline:none;background:#fff;color:var(--text)
+}
+.measure-input{position:relative}.measure-input input{padding-right:46px}.unit-watermark{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#a7afb9;font-size:14px;font-weight:700;pointer-events:none;user-select:none}
+input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(21,101,192,.10)}
+.factor-line{position:relative}.factor-line .digits{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:#98a2b3}
+.formula{
+  margin:20px 0;padding:14px 16px;border:1px dashed #d9e0e7;border-radius:12px;
+  background:#f8fafc;text-align:center;color:#344054;font-size:14px;line-height:1.45
+}
+.actions{display:flex;gap:10px}
+button{height:48px;border:0;border-radius:12px;padding:0 18px;font-size:15px;font-weight:800;cursor:pointer}
+#calcBtn{flex:1;background:var(--primary);color:#fff}
+#clearBtn{background:#eef1f4;color:#344054}
+.message{display:none;margin-top:15px;padding:12px 14px;border-radius:12px;font-size:13px;font-weight:700}
+.message.error{display:block;color:var(--danger);background:var(--danger-soft)}
+.message.warning{display:block;color:var(--warning);background:var(--warning-soft)}
+.result{display:none;margin-top:22px;border-radius:16px;overflow:hidden;border:1px solid #cfe7d8;background:linear-gradient(180deg,#fbfffc 0,#edf8f1 100%)}
+.result-top{padding:20px 20px 16px;border-bottom:1px solid #d8ebdf}
+.result-label{font-size:12px;color:#5d7465;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.result-value{font-size:36px;font-weight:900;color:var(--success);margin-top:5px}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr)}
+.metric{padding:15px 16px;border-right:1px solid #d8ebdf}.metric:last-child{border-right:0}
+.metric .k{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#6e8275;font-weight:800;margin-bottom:4px}
+.metric .v{font-size:17px;font-weight:800}
+.steps{margin-top:20px}
+.steps-box{padding:16px;background:#fbfcfd;border:1px solid var(--line);border-radius:14px}
+.steps-box code{font-family:"Roboto Mono",Consolas,monospace;white-space:pre-wrap;line-height:1.75;font-size:13px}
+.note{margin-top:18px;padding:14px;border-radius:12px;background:#f8fafc;color:#667085;font-size:12px;line-height:1.5}
+.example{margin-top:18px;padding:16px;border-radius:14px;background:var(--primary-soft);border:1px solid #d5e4ff}
+.example h2{margin:0 0 8px;font-size:15px}.example p{margin:5px 0;font-size:13px;line-height:1.5;color:#35506f}
+.example .answer{margin-top:9px;font-size:17px;font-weight:900;color:#0f4c9a}
+
+/* Visor da CPU — foco no display, sem teclado lateral */
+.cpu-card{
+  border-radius:20px;
+  border:1px solid #252b2e;
+  background:linear-gradient(145deg,#1b2124 0%,#0b0f11 100%);
+  padding:14px;
+  box-shadow:0 16px 34px rgba(16,24,40,.20), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.cpu-title{display:flex;justify-content:space-between;align-items:center;color:#c9d0d5;font-size:12px;margin:0 3px 10px;letter-spacing:.02em}
+.led{width:9px;height:9px;border-radius:50%;background:#53d66c;box-shadow:0 0 0 4px rgba(83,214,108,.08),0 0 15px rgba(83,214,108,.42)}
+.cpu-frame{
+  position:relative;
+  padding:18px 18px 20px;
+  border-radius:7px;
+  background:linear-gradient(145deg,#c8c09e,#8e886f);
+  box-shadow:inset 0 0 0 2px rgba(61,56,39,.45), inset 0 0 0 6px rgba(255,255,255,.22), 0 4px 10px rgba(0,0,0,.28);
+}
+.cpu-frame:before{content:"";position:absolute;inset:5px;border:1px solid rgba(60,56,45,.32);border-radius:4px;pointer-events:none}
+.lcd{
+  position:relative;
+  min-height:250px;
+  border:8px solid #ddd9c9;
+  border-radius:2px;
+  background:#eef0eb;
+  padding:30px 24px;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  font-family:"Courier New",monospace;color:#4c5fa5;text-align:center;
+  box-shadow:inset 0 0 26px rgba(77,75,64,.10),0 1px 0 rgba(255,255,255,.75);
+  overflow:hidden;
+}
+.lcd:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(70,90,130,.045) 0,rgba(70,90,130,.045) 1px,transparent 1px,transparent 4px);
+  mix-blend-mode:multiply;
+}
+.lcd:after{
+  content:"";position:absolute;inset:9px;border:1px solid rgba(94,97,91,.17);pointer-events:none
+}
+.lcd small{position:relative;z-index:1;font-size:17px;letter-spacing:.12em;font-weight:700;color:#59649c}
+.lcd-entry{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;margin:22px 0 4px;color:#4a5ea8}
+.lcd-plus{font-size:35px;font-weight:700;line-height:1}.lcd-bracket{font-size:35px;font-weight:700;line-height:1;letter-spacing:.01em}.lcd-bracket strong{font-size:35px;line-height:1.1;letter-spacing:.13em;font-weight:800}
+.lcd-status{position:relative;z-index:1;margin-top:13px;font-size:11px;letter-spacing:.08em;color:#69739c;font-weight:700}
+.lcd-reflections{position:absolute;left:16px;right:16px;top:12px;height:30px;background:linear-gradient(100deg,rgba(255,255,255,.34),rgba(255,255,255,0));opacity:.35;pointer-events:none}
+.cpu-screws{display:flex;justify-content:space-between;margin:8px 2px 0;color:#b7b1a0;font-size:10px}
+.cpu-screw{width:8px;height:8px;border:1px solid #787464;border-radius:50%;background:#b9b199;box-shadow:inset 0 1px 2px rgba(0,0,0,.22)}
+.cpu-caption{margin:11px 2px 0;color:#aeb7be;font-size:11px;line-height:1.45}
+.legend{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.legend h2{margin:0 0 8px;font-size:14px}.legend p{margin:5px 0;color:var(--muted);font-size:12px;line-height:1.45}
+@media(max-width:820px){
+  .layout{grid-template-columns:1fr;padding:20px 18px 24px}
+  .header{padding:22px 18px 18px}
+  .fields{grid-template-columns:1fr}
+  .field.factor{grid-column:auto}
+}
+@media(max-width:560px){
+  .container{width:min(100% - 14px,680px);margin:8px auto 24px}
+  h1{font-size:23px}.subtitle{font-size:14px}
+  .metric-row{grid-template-columns:1fr}
+  .metric{border-right:0;border-bottom:1px solid #d8ebdf}.metric:last-child{border-bottom:0}
+  .actions{flex-direction:column}
+  #calcBtn,#clearBtn{width:100%}
+  .lcd{min-height:220px;padding:24px 15px}.lcd small{font-size:14px}.lcd-plus{font-size:31px}.lcd-bracket{font-size:31px}.lcd-bracket strong{font-size:29px}.lcd-status{font-size:9px}
+}
+
+/* Menu de navegação entre as ferramentas */
+.tool-nav {
+  width: min(1040px, calc(100% - 24px));
+  margin: 16px auto 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-family: Roboto, Arial, sans-serif;
+}
+.tool-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 1px solid #d9dee3;
+  border-radius: 12px;
+  background: #fff;
+  color: #52606d;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.tool-nav a:hover { border-color: #1565c0; color: #1565c0; }
+.tool-nav a.active { background: #1565c0; border-color: #1565c0; color: #fff; }
+
+</style>
+</head>
+<body>
+<nav class="tool-nav" aria-label="Navegação principal">
+  <a href="index.html">Controle de chamados</a>
+  <a class="active" href="calculadora.html">Calculadora de profundidade</a>
+</nav>
+<div class="container">
+  <div class="card">
+    <div class="header">
+      <p class="eyebrow">Ferramenta técnica</p>
+      <h1>Calculadora de Fator de Ajuste</h1>
+      <p class="subtitle">Sensor de profundidade da perfuratriz</p>
+    </div>
+
+    <div class="layout">
+      <main>
+        <p class="section-title">Dados da medição</p>
+
+        <div class="fields">
+          <div class="field">
+            <label for="real">Valor medido na trena <span class="unit-label">m</span></label>
+            <div class="hint">Medição física conferida manualmente</div>
+            <div class="measure-input"><input id="real" type="number" step="0.001" inputmode="decimal" placeholder="Ex.: 3,10"><span class="unit-watermark">m</span></div>
+          </div>
+
+          <div class="field">
+            <label for="cpu">Valor indicado pela CPU</label>
+            <div class="hint">Leitura mostrada no equipamento</div>
+            <div class="measure-input"><input id="cpu" type="number" step="0.001" inputmode="decimal" placeholder="Ex.: 0,08"><span class="unit-watermark">m</span></div>
+          </div>
+
+          <div class="field factor">
+            <label for="fator">Fator de ajuste atual</label>
+            <div class="hint">A CPU aceita somente <strong>5 dígitos</strong>, sem ponto, vírgula ou separador</div>
+            <div class="factor-line">
+              <input id="fator" type="text" inputmode="numeric" maxlength="5" pattern="[0-9]{1,5}" placeholder="Ex.: 5000" autocomplete="off">
+              <span class="digits">máx. 5 dígitos</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula">
+          <strong>Regra de 3:</strong><br>
+          Fator atual → valor indicado pela CPU &nbsp; | &nbsp;
+          X → valor medido na trena<br>
+          <strong>X = (Fator atual × Valor da trena) ÷ Valor da CPU</strong>
+        </div>
+
+        <div class="actions">
+          <button id="calcBtn" type="button">Calcular novo fator</button>
+          <button id="clearBtn" type="button">Limpar</button>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div id="result" class="result">
+          <div class="result-top">
+            <div class="result-label">Novo fator de ajuste</div>
+            <div id="resultValue" class="result-value">—</div>
+          </div>
+          <div class="metric-row">
+            <div class="metric"><span class="k">Diferença</span><span id="difference" class="v">—</span></div>
+            <div class="metric"><span class="k">Trena</span><span id="realOut" class="v">—</span></div>
+            <div class="metric"><span class="k">CPU</span><span id="cpuOut" class="v">—</span></div>
+          </div>
+        </div>
+
+        <div class="steps">
+          <p class="section-title">Cálculo passo a passo</p>
+          <div id="stepsBox" class="steps-box">
+            <code>Preencha os campos e clique em "Calcular novo fator".</code>
+          </div>
+        </div>
+
+        <div class="example">
+          <h2>Exemplo baseado no procedimento</h2>
+          <p>Trena: <strong>3,10 m</strong></p>
+          <p>CPU: <strong>0,08 m</strong></p>
+          <p>Fator atual: <strong>5000</strong></p>
+          <p>X = (5000 × 3,10) ÷ 0,08</p>
+          <div class="answer">Novo fator = 193750</div>
+        </div>
+
+        <div class="note">
+          <strong>Atenção:</strong> o exemplo resulta em 193.750, que possui 6 dígitos.
+          Se a sua CPU realmente aceitar no máximo 5 dígitos, esse resultado <strong>não pode ser digitado diretamente</strong>.
+          Nesse caso, o sistema deve ser investigado antes de aplicar o ajuste.
+        </div>
+      </main>
+
+      <aside>
+        <div class="cpu-card">
+          <div class="cpu-title"><span>SACI 3</span><span class="led"></span></div>
+          <div class="cpu-frame">
+            <div class="lcd">
+              <div class="lcd-reflections"></div>
+              <small>DIGITE O FATOR</small>
+              <small>DE AJUSTE</small>
+              <div class="lcd-entry"><span class="lcd-plus">+</span><span class="lcd-bracket">[<strong id="lcdFactor">5000</strong>]</span></div>
+            </div>
+            <div class="cpu-screws"><span class="cpu-screw"></span><span class="cpu-screw"></span></div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <h2>Como usar</h2>
+          <p><strong>1.</strong> Meça a profundidade com a trena.</p>
+          <p><strong>2.</strong> Anote a leitura mostrada pela CPU.</p>
+          <p><strong>3.</strong> Informe o fator atual da CPU.</p>
+          <p><strong>4.</strong> A calculadora apresenta o novo fator (sem ponto ou vírgula) e avisa caso ultrapasse 5 dígitos.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<script>
+function parseDecimal(value){
+  const raw = String(value ?? '').trim();
+  if(!raw) return NaN;
+  // Aceita "3,10" e "3.10" nos campos de metragem.
+  return parseFloat(raw.replace(',', '.'));
+}
+
+function parseFactor(value){
+  const raw = String(value ?? '').trim().replace(/\D/g,'');
+  return raw ? parseInt(raw,10) : NaN;
+}
+
+function fmt(value, decimals=2){
+  return Number(value).toLocaleString('pt-BR',{
+    minimumFractionDigits:decimals,
+    maximumFractionDigits:decimals
+  });
+}
+
+function setMessage(text, type='error'){
+  const el=document.getElementById('message');
+  el.className='message '+type;
+  el.textContent=text;
+}
+
+function clearMessage(){
+  const el=document.getElementById('message');
+  el.className='message';
+  el.textContent='';
+}
+
+function calcular(){
+  clearMessage();
+  const real=parseDecimal(document.getElementById('real').value);
+  const cpu=parseDecimal(document.getElementById('cpu').value);
+  const fator=parseFactor(document.getElementById('fator').value);
+
+  if(!Number.isFinite(real)||!Number.isFinite(cpu)||!Number.isFinite(fator)){
+    document.getElementById('result').style.display='none';
+    setMessage('Preencha os três campos para realizar o cálculo.');
+    return;
+  }
+  if(real<=0||cpu<=0||fator<=0){
+    document.getElementById('result').style.display='none';
+    setMessage('Os valores devem ser maiores que zero.');
+    return;
+  }
+  if(fator>99999){
+    document.getElementById('result').style.display='none';
+    setMessage('O fator atual deve ter no máximo 5 dígitos.');
+    return;
+  }
+
+  const novo=(fator*real)/cpu;
+  const diferenca=real-cpu;
+
+  const novoInteiro=Math.round(novo);document.getElementById('resultValue').textContent=String(novoInteiro);
+  document.getElementById('difference').textContent=fmt(diferenca,2)+' m';
+  document.getElementById('realOut').textContent=fmt(real,3)+' m';
+  document.getElementById('cpuOut').textContent=fmt(cpu,3)+' m';
+
+  const lines=[
+    'Fator atual → leitura da CPU',
+    fator+' → '+fmt(cpu,3)+' m',
+    '',
+    'Novo fator → valor medido na trena',
+    'X → '+fmt(real,3)+' m',
+    '',
+    'X = ('+fator+' × '+fmt(real,3)+') ÷ '+fmt(cpu,3),
+    'X = '+fmt(fator*real,3)+' ÷ '+fmt(cpu,3),
+    'X = '+String(novoInteiro)
+  ];
+  document.getElementById('stepsBox').innerHTML='<code>'+lines.join('\n')+'</code>';
+  document.getElementById('result').style.display='block';
+
+  if(novo>99999){
+    setMessage(
+      'Atenção: o novo fator calculado é '+fmt(novo,2)+' e ultrapassa o limite de 5 dígitos da CPU.',
+      'warning'
+    );
+  }
+
+  const display=Math.round(novo);
+  document.getElementById('lcdFactor').textContent=(display>99999?'99999':String(display).padStart(5,'0'));
+}
+
+function limpar(){
+  document.getElementById('real').value='';
+  document.getElementById('cpu').value='';
+  document.getElementById('fator').value='';
+  document.getElementById('result').style.display='none';
+  clearMessage();
+  document.getElementById('stepsBox').innerHTML='<code>Preencha os campos e clique em "Calcular novo fator".</code>';
+  document.getElementById('lcdFactor').textContent='00000';
+}
+
+document.getElementById('calcBtn').addEventListener('click',calcular);
+document.getElementById('clearBtn').addEventListener('click',limpar);
+
+document.getElementById('fator').addEventListener('input',e=>{
+  e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);
+  document.getElementById('lcdFactor').textContent=(e.target.value||'00000');
+});
+
+document.querySelectorAll('input').forEach(el=>{
+  el.addEventListener('keydown',e=>{
+    if(e.key==='Enter') calcular();
+  });
+});
+
+// Preenche o exemplo solicitado
+document.getElementById('real').value='3.10';
+document.getElementById('cpu').value='0.08';
+document.getElementById('fator').value='5000';
+calcular();
+</script>
+</body>
+</html>
