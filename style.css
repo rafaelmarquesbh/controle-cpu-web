@@ -566,3 +566,37 @@ button:disabled::after {
   .bloco { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
   .bloco::before { display: none; }
 }
+
+
+/* ===== Menu de navegação entre ferramentas ===== */
+.main-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -8px 0 24px;
+}
+.main-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 18px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+.main-nav a:hover {
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+}
+.main-nav a.active {
+  border-color: var(--btn-primary-bg);
+  background: var(--btn-primary-bg);
+  color: #fff;
+}
